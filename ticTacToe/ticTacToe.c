@@ -145,8 +145,6 @@ int getMinValue(char *board) {
     return minVal;
 }
 
-/* Returns the optimal action for the current player on the board.
- */
 int minimax(char *board) {
     if (isTerminal(board)) {
         return NONE;

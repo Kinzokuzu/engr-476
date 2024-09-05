@@ -1,16 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
 #include "ticTacToe.h"
 
 #define BOARD_LENGTH 9
 
 int main() {
-    // Set seed for random number generator
-    srand(time(NULL));
-
     // Open file with current board state
     FILE *file = fopen("input.txt", "r");
     if (file == NULL) {
@@ -32,9 +28,9 @@ int main() {
     // Print best move
     int bestMove = minimax(board);
     printf("Best move:\n");
-    char newBoard[BOARD_LENGTH];
-    setNewBoard(board, bestMove, newBoard);
-    printBoard(newBoard);
+    // char newBoard[BOARD_LENGTH];
+    setNewBoard(board, bestMove, board);
+    printBoard(board);
 
     // Write optimal move sequence to file
     file = fopen("output.txt", "w");
@@ -44,8 +40,20 @@ int main() {
     }
 
     for (int i = 0; i < BOARD_LENGTH; i++) {
-        fputc(newBoard[i], file);
+        fputc(board[i], file);
     }
     fputc('\n', file);
+
+    // Play game until terminal state
+    while (!isTerminal(board)) {
+        bestMove = minimax(board);
+        setNewBoard(board, bestMove, board);
+        printBoard(board);
+        for (int i = 0; i < BOARD_LENGTH; i++) {
+            fputc(board[i], file);
+        }
+        fputc('\n', file);
+    }
+
     fclose(file);
 }
