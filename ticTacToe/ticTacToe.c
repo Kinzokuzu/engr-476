@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "ticTacToe.h"
 
@@ -30,41 +31,33 @@ char getPlayer(char *board) {
         }
     }
 
-    if (emptyCount % 2 == 1) {
-        return X;
-    }
-    return O;
+    return (emptyCount % 2 == 1) ? X : O;
 }
 
-int *getActions(char *board) {
-    static int possibleActions[BOARD_LENGTH];
+void setActions(char *board, int *actions) {
     int actionCount = 0;
     for (int i = 0; i < BOARD_LENGTH; i++) {
         if (board[i] == EMPTY) {
-            possibleActions[actionCount] = i;
+            actions[actionCount] = i;
             actionCount++;
         }
     }
    
     while (actionCount < BOARD_LENGTH) {
-        possibleActions[actionCount] = NONE;
+        actions[actionCount] = NONE;
         actionCount++;
     }
-
-    return possibleActions;
 }
 
-char *getResult(char *board, int action) {
+void setNewBoard(char *board, int action, char *newBoard) {
     if (board[action] != EMPTY) {
-       return NULL;
+       return; 
     }
 
-    char player = getPlayer(board);
-    static char newBoard[9];
-    memcpy(newBoard, board, sizeof(newBoard));
-    newBoard[action] = player;
-
-    return newBoard;
+    for (int i = 0; i < BOARD_LENGTH; i++) {
+        newBoard[i] = board[i];
+    }
+    newBoard[action] = getPlayer(board);
 }
 
 char getWinner(char *board) {
@@ -122,10 +115,13 @@ int getMaxValue(char *board) {
     }
 
     int maxVal = INT_MIN;
-    int *actions = getActions(board);
-    int actions_idx = 0;
-    while (actions[actions_idx] != NONE) {
-        maxVal = max(maxVal, getMinValue(getResult(board, actions[actions_idx])));
+    int actions[BOARD_LENGTH];
+    setActions(board, actions);
+    for (int i = 0; actions[i] != NONE; i++) {
+        char newBoard[BOARD_LENGTH];
+        setNewBoard(board, actions[i], newBoard);
+        int newVal = getMinValue(newBoard);
+        maxVal = max(newVal, maxVal);
     }
     
     return maxVal;
@@ -137,10 +133,13 @@ int getMinValue(char *board) {
     }
 
     int minVal = INT_MAX;
-    int *actions = getActions(board);
-    int actions_idx = 0;
-    while (actions[actions_idx] != NONE) {
-        minVal = min(minVal, getMaxValue(getResult(board, actions[actions_idx])));
+    int actions[BOARD_LENGTH];
+    setActions(board, actions);
+    for (int i = 0; actions[i] != NONE; i++) {
+        char newBoard[BOARD_LENGTH];
+        setNewBoard(board, actions[i], newBoard);
+        int newVal = getMaxValue(newBoard);
+        minVal = min(newVal, minVal);
     }
 
     return minVal;
@@ -156,6 +155,7 @@ int minimax(char *board) {
     // The best opening for X is any corner, hard coding that here.
     if (isEmpty(board)) {
         int cornerMove[4] = {0, 2, 6, 8};
+        srand(time(NULL));
         int randomInx = rand() % 4;
         return cornerMove[randomInx];
     }
@@ -163,28 +163,38 @@ int minimax(char *board) {
     int bestMove = NONE;
     if (getPlayer(board) == X) {
         int utility = INT_MIN;
-        int *actions = getActions(board);
+        int actions[BOARD_LENGTH];
+        setActions(board, actions);
         int actions_idx = 0;
         while (actions[actions_idx] != NONE) {
-            int minVal = getMinValue(getResult(board, actions[actions_idx]));
+            char newBoard[BOARD_LENGTH];
+            setNewBoard(board, actions[actions_idx], newBoard);
+            int minVal = getMinValue(newBoard);
 
             if (minVal > utility) {
                 bestMove = actions[actions_idx];
                 utility = minVal;
             }
+
+            actions_idx++;
         }
     }
     else {
         int utility = INT_MAX;
-        int *actions = getActions(board);
+        int actions[BOARD_LENGTH];
+        setActions(board, actions);
         int actions_idx = 0;
         while (actions[actions_idx] != NONE) {
-            int maxVal = getMaxValue(getResult(board, actions[actions_idx]));
+            char newBoard[BOARD_LENGTH];
+            setNewBoard(board, actions[actions_idx], newBoard);
+            int maxVal = getMaxValue(newBoard);
 
             if (maxVal < utility) {
                 bestMove = actions[actions_idx];
                 utility = maxVal;
             }
+
+            actions_idx++;
         }
     }
 
@@ -200,83 +210,3 @@ void printBoard(char *board) {
     }
     printf("\n");
 }
-
-// int main() {
-//     srand(time(NULL)); // for opening move
-// 
-//     FILE *file_ptr;
-//     char ch;
-// 
-//     file_ptr = fopen("inputFile.txt", "r");
-//     if (file_ptr == NULL) {
-//         perror("File can't be opened\n");
-//         return EXIT_FAILURE;
-//     }
-// 
-//     // Create the board from the input file.
-//     char board[9];
-//     int charCount = 0;
-//     for (int i = 0; i < BOARD_LENGTH; i++) {
-//         int ch = fgetc(file_ptr);
-//         board[charCount] = (char)ch;
-//         charCount++;
-//     }
-//     fclose(file_ptr);
-// 
-//     // Tests prints
-//     printBoard(board);
-// 
-//     // getPlayer
-//     printf("Next player: %c\n", getPlayer(board));
-// 
-//     // getActions
-//     printf("Possible actions:\n");
-//     int *actions = getActions(board);
-//     int actions_idx = 0;
-//     while (actions[actions_idx] != NONE) {
-//         printf("%d,", actions[actions_idx]);
-//         actions_idx++;
-//     }
-//     printf("\n");
-// 
-//     // getResult
-//     actions_idx = 0;
-//     while (actions[actions_idx] != NONE) {
-//         char *newBoard = getResult(board, actions[actions_idx]);
-//         for (int i = 0; i < BOARD_LENGTH; i++) {
-//             printf("%c", newBoard[i]);
-//         }
-//         printf("\n");
-// 
-//         actions_idx++;
-//     }
-// 
-//     printf("Is Terminal: %d\n", isTerminal(board));
-// 
-//     // getWinner
-//     char x_winner[BOARD_LENGTH] = {X, X, X, O, O, EMPTY, EMPTY, EMPTY, EMPTY};
-//     printBoard(x_winner);
-//     printf("Winner: %c\n", getWinner(x_winner));
-//     printf("Is Terminal: %d\n", isTerminal(x_winner));
-//     printf("Utility: %d\n", getUtility(x_winner));
-// 
-//     char o_winner[BOARD_LENGTH] = {X, X, O, EMPTY, O, EMPTY, O, X, EMPTY};
-//     printBoard(o_winner);
-//     printf("Winner: %c\n", getWinner(o_winner));
-//     printf("Utility: %d\n", getUtility(o_winner));
-// 
-//     char tie_board[BOARD_LENGTH] = {X, O, X, X, X, O, O, X, O};
-//     printBoard(tie_board);
-//     printf("Winner: %c\n", getWinner(tie_board));
-//     printf("Utility: %d\n", getUtility(tie_board));
-// 
-//     char empty_board[BOARD_LENGTH] = {EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY};
-//     printBoard(empty_board);
-//     printf("isEmpty: %d\n", isEmpty(empty_board));
-// 
-//     printf("Best move: %d\n", minmax(board));
-// 
-//     // End test prints
-// 
-//     return 0;
-// }

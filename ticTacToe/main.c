@@ -32,7 +32,20 @@ int main() {
     // Print best move
     int bestMove = minimax(board);
     printf("Best move:\n");
-    printBoard(getResult(board, bestMove));
+    char newBoard[BOARD_LENGTH];
+    setNewBoard(board, bestMove, newBoard);
+    printBoard(newBoard);
 
     // Write optimal move sequence to file
+    file = fopen("output.txt", "w");
+    if (file == NULL) {
+        perror("Error opening file");
+        return EXIT_FAILURE;
+    }
+
+    for (int i = 0; i < BOARD_LENGTH; i++) {
+        fputc(newBoard[i], file);
+    }
+    fputc('\n', file);
+    fclose(file);
 }

@@ -8,13 +8,13 @@ bool isEmpty(char *board);
  */
 char getPlayer(char *board);
 
-/* Returns all possible actions available on the board.
+/* Fills an array with all possible actions available on the board.
  */
-int *getActions(char *board);
+void setActions(char *board, int *actions);
 
-/* Returns the board that results from making a move.
+/* Sets the new board that results from making a move.
  */
-char *getResult(char *board, int action);
+void setNewBoard(char *board, int action, char *newBoard);
 
 /* Returns the winner of the game, if there is one.
  */
