@@ -48,7 +48,6 @@ int main() {
     while (!isTerminal(board)) {
         bestMove = minimax(board);
         setNewBoard(board, bestMove, board);
-        printBoard(board);
         for (int i = 0; i < BOARD_LENGTH; i++) {
             fputc(board[i], file);
         }
