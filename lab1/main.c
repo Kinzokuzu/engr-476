@@ -11,6 +11,7 @@ int main() {
     char header[BUFFER_LEN];
     struct Student students[MAX_STUDENTS];
     readTable(fileName, header, students);
+    printf("%s:\n\n", fileName);
     printTable(header, students);
 
     // Execute command
