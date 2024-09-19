@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 #define FLAG_LEN 8
+#define FRAME_FLAG "01111110"
 
 struct termios orig_termios; // original terminal attributes
 
@@ -19,9 +20,9 @@ void enableRawInput() {
     atexit(disableRawInput);
 
     struct termios raw = orig_termios;
-    raw.c_iflag &= ~( ICRNL| IXON);                  // c_iflag: input flags
-    raw.c_oflag &= ~(OPOST);                         // c_oflag: ouput flags
-    raw.c_lflag &= ~(/*ECHO |*/ ICANON | IEXTEN | ISIG); // c_lflag: local flags
+    raw.c_iflag &= ~(ICRNL| IXON);            // c_iflag: input flags
+    raw.c_oflag &= ~(OPOST);                  // c_oflag: ouput flags
+    raw.c_lflag &= ~(ICANON | IEXTEN | ISIG); // c_lflag: local flags
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
@@ -49,13 +50,34 @@ int main() {
 
     char flag_buff[FLAG_LEN+1] = {'\0'};
     int idx = 0;
+    bool openFrame = false;
+
+    char filename[] = "output.txt";
+    FILE *file = fopen(filename, "w");
+    if (file == NULL) {
+        perror("Error opening file");
+    }
+
     char ch;
-    while (read(STDIN_FILENO, &ch, 1) == 1 /*&& ch != 'e'*/) {
+    while (read(STDIN_FILENO, &ch, 1) == 1) {
         if (ch == 'e') break;
 
         idx = setFlagBuffer(ch, flag_buff, idx);
         if (isFrameFlag(flag_buff)) {
-            // Do something
+            openFrame = !openFrame;
+            printf("\r\nFound flag: %d\r\n", openFrame);
+
+            if (openFrame) {
+                fprintf(file, FRAME_FLAG);
+            }
+            else {
+                fprintf(file, "%c\n", ch); // place file '0' and newline
+            }
+            continue;
+        }
+
+        if (openFrame) {
+            fputc(ch, file);
         }
 
         if (iscntrl(ch)) { // is control character
@@ -65,6 +87,9 @@ int main() {
             printf("%c\r", ch);
         }
     }
+    printf("\r\n");
+
+    fclose(file);
 
     return 0;
 }
