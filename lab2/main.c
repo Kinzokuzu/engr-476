@@ -65,12 +65,15 @@ int main() {
         idx = setFlagBuffer(ch, flag_buff, idx);
         if (isFrameFlag(flag_buff)) {
             openFrame = !openFrame;
+            printf("\r\n%s flag found\r\n", openFrame ? "Opening" : "Closing");
 
             if (openFrame) {
+                fprintf(file, "Opening flag found\n");
                 fprintf(file, FRAME_FLAG);
             }
             else {
                 fprintf(file, "%c\n", ch); // place file '0' and newline
+                fprintf(file, "Closing flag found\n");
             }
             continue;
         }
