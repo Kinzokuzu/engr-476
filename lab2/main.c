@@ -65,7 +65,6 @@ int main() {
         idx = setFlagBuffer(ch, flag_buff, idx);
         if (isFrameFlag(flag_buff)) {
             openFrame = !openFrame;
-            printf("\r\nFound flag: %d\r\n", openFrame);
 
             if (openFrame) {
                 fprintf(file, FRAME_FLAG);
